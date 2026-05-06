@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KY's Picking Quality Audit Tool</title>
+    <!-- 引入库文件 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 状态颜色定义 */
+        .row-complete { background-color: #d1fae5; } /* 正常完成：绿色 */
+        .row-partial { background-color: #fef3c7; }  /* 部分漏扫/多扫/异常：黄色 */
+        .row-missing { background-color: #f3f4f6; }  /* 初始/未操作：灰色 */
+        .row-extra { background-color: #fee2e2; }    /* 全漏扫(Qty=0)或完全不在单内：红色 */
+        
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <!-- 全局导航栏 -->
+    <nav class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-50 flex justify-between items-center">
+        <h1 class="text-xl font-bold" id="ui-title">KY's Picking Quality Audit Tool</h1>
+        <div class="flex items-center gap-4">
+            <select id="lang-select" class="bg-blue-700 text-white border-none rounded px-2 py-1 outline-none">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="zh">中文</option>
+            </select>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 space-y-6">
+        
+        <!-- 第一部分：文件上传区 -->
+        <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+            <h2 class="text-lg font-semibold mb-4" id="ui-upload-title">1. Pick Details Upload</h2>
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-10 bg-gray-50">
+                <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden">
+                <label for="excel-upload" class="cursor-pointer bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition" id="ui-upload-btn-text">
+                    Select XLSX File
+                </label>
+                <p class="mt-2 text-sm text-gray-500" id="ui-upload-hint">Support large files (40k-60k rows)</p>
+            </div>
+            <div id="upload-status" class="hidden mt-4 p-4 bg-blue-50 rounded flex items-center gap-4">
+                <div class="spinner"></div>
+                <div class="flex-1">
+                    <p id="progress-text" class="font-medium">Processing...</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二部分：稽查工作区 -->
+        <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500">
+            <h2 class="text-lg font-semibold mb-4" id="ui-audit-title">2. Audit Workspace</h2>
+            
+            <div id="audit-login" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700" id="ui-auditor-label">Auditor Name</label>
+                    <input type="text" id="auditor-name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700" id="ui-building-label">Building</label>
+                    <select id="auditor-building" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        <option value="B4">B4</option>
+                        <option value="B6">B6</option>
+                        <option value="B8">B8</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700" id="ui-shift-label">Shift</label>
+                    <select id="auditor-shift" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                        <option value="S4">S4</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="btn-start-audit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 font-bold transition">Confirm Identity</button>
+                </div>
+            </div>
+
+            <div id="scan-workspace" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                        <label class="block font-bold text-blue-800" id="ui-scan-tote-label">Scan Picking Tote</label>
+                        <input type="text" id="tote-input" class="mt-1 block w-full border-2 border-blue-400 rounded-md p-3 text-lg focus:ring-blue-500">
+                        <button id="btn-next-tote" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 shadow flex items-center justify-center gap-2">
+                            <span id="ui-btn-next-tote">Audit Next Tote</span> 
+                            <span id="staged-count" class="bg-blue-800 px-2 py-0.5 rounded-full text-xs">0</span>
+                        </button>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded border border-orange-200">
+                        <label class="block font-bold text-orange-800" id="ui-scan-product-label">Scan Product Barcode</label>
+                        <input type="text" id="product-input" class="mt-1 block w-full border-2 border-orange-400 rounded-md p-3 text-lg focus:ring-orange-500" disabled>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tote</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKC</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-qty">Picking Qty</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-picker">Picker</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-scan">Scan Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-table-body" class="divide-y divide-gray-200 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button id="btn-end-audit" class="bg-red-600 text-white px-12 py-3 rounded-xl font-bold hover:bg-red-700 shadow-xl transform transition hover:scale-105">Finish Audit & Upload All</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第三部分：报表与统计 -->
+        <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-500">
+            <h2 class="text-lg font-semibold mb-4" id="ui-report-title">3. Session Audit Report</h2>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="ui-filter-bldg">Building</label>
+                    <select id="filter-building" class="w-full border rounded p-2"><option value="">All</option><option value="B4">B4</option><option value="B6">B6</option><option value="B8">B8</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="ui-filter-shift">Shift</label>
+                    <select id="filter-shift" class="w-full border rounded p-2"><option value="">All</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option><option value="S4">S4</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="ui-filter-date">Audit Date</label>
+                    <input type="date" id="filter-date" class="w-full border rounded p-2">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="ui-filter-auditor">Auditor</label>
+                    <input type="text" id="filter-auditor" class="w-full border rounded p-2" placeholder="Name">
+                </div>
+                <div class="flex items-end">
+                    <button id="btn-generate-report" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 font-bold transition">Generate Report</button>
+                </div>
+            </div>
+
+            <!-- 可视化看板容器 -->
+            <div id="summary-dashboard" class="hidden flex flex-col gap-4 mb-6">
+            </div>
+
+            <div class="flex justify-end mb-2">
+                <button id="btn-export" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 text-sm font-bold">
+                    <span id="ui-btn-export-text">Export to Excel</span>
+                </button>
+            </div>
+            
+            <div class="relative overflow-hidden border rounded-lg">
+                <div id="report-loader" class="hidden absolute inset-0 bg-white bg-opacity-80 z-10 flex flex-col items-center justify-center">
+                    <div class="spinner mb-2"></div>
+                    <p class="text-xs font-bold text-blue-800">Fetching Data...</p>
+                </div>
+                <div class="overflow-x-auto max-h-[500px]">
+                    <table class="min-w-full text-xs text-left divide-y divide-gray-200" id="report-table">
+                        <thead class="bg-gray-100 sticky top-0">
+                            <tr>
+                                <th class="px-3 py-2 border">Tote ID</th>
+                                <th class="px-3 py-2 border">SKC</th>
+                                <th class="px-3 py-2 border">SKU</th>
+                                <th class="px-3 py-2 border">Picker</th>
+                                <th class="px-3 py-2 border">Pick Qty</th>
+                                <th class="px-3 py-2 border">Scan Qty</th>
+                                <th class="px-3 py-2 border text-red-600">Missing</th>
+                                <th class="px-3 py-2 border text-orange-600">Extra</th>
+                                <th class="px-3 py-2 border">Shift</th>
+                                <th class="px-3 py-2 border text-[10px]">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- 基础配置 ---
+        const SUPABASE_URL = "https://jbmasixvsgwypughjhzk.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_40rCwoGI6jW2TfBjB7OoTA_E9X5nGex";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const i18n = {
+            en: {
+                title: "KY's Picking Quality Audit Tool",
+                uploadTitle: "1. Pick Details Upload",
+                uploadBtn: "Select XLSX File",
+                uploadHint: "Support large files (40k-60k rows)",
+                auditTitle: "2. Audit Workspace",
+                auditor: "Auditor Name",
+                building: "Building",
+                shift: "Shift",
+                confirm: "Confirm Identity",
+                scanTote: "Scan Picking Tote",
+                btnNext: "Audit Next Tote",
+                scanProduct: "Scan Product Barcode",
+                btnEnd: "Finish Audit & Upload All",
+                reportTitle: "3. Session Audit Report",
+                btnExport: "Export to Excel",
+                btnGenerate: "Generate Report",
+                thQty: "Picking Qty",
+                thPicker: "Picker",
+                thScan: "Scan Qty",
+                successUpload: "Upload successful!",
+                errTote: "Tote not found or empty.",
+                totalTotes: "Total Totes",
+                totalItems: "Total Scan Qty",
+                extraRate: "Extra Rate",
+                missingRate: "Missing Rate"
+            },
+            es: {
+                title: "Herramienta de Auditoría KY",
+                uploadTitle: "1. Carga de Picking",
+                uploadBtn: "Seleccionar XLSX",
+                uploadHint: "Archivos grandes (40k-60k)",
+                auditTitle: "2. Auditoría",
+                auditor: "Auditor",
+                building: "Edificio",
+                shift: "Turno",
+                confirm: "Confirmar",
+                scanTote: "Escanear Tote",
+                btnNext: "Siguiente Tote",
+                scanProduct: "Escanear Producto",
+                btnEnd: "Finalizar y Subir",
+                reportTitle: "3. Reporte de Auditoría",
+                btnExport: "Exportar a Excel",
+                btnGenerate: "Generar Reporte",
+                thQty: "Cant. Picking",
+                thPicker: "Picker",
+                thScan: "Cant. Scan",
+                successUpload: "Carga exitosa!",
+                errTote: "Tote no encontrado.",
+                totalTotes: "Totes Totales",
+                totalItems: "Total Scan",
+                extraRate: "Tasa de Extras",
+                missingRate: "Tasa de Faltantes"
+            },
+            zh: {
+                title: "KY 拣货质量稽查工具",
+                uploadTitle: "1. 拣货明细上传",
+                uploadBtn: "选择 Excel 文件",
+                uploadHint: "支持大文件 (4万-6万行数据)",
+                auditTitle: "2. 稽查工作区",
+                auditor: "稽查员姓名",
+                building: "楼栋",
+                shift: "班次",
+                confirm: "确认身份",
+                scanTote: "扫描拣货周转箱 (Tote)",
+                btnNext: "稽查下一箱",
+                scanProduct: "扫描商品条码",
+                btnEnd: "结束稽查并上传全部",
+                reportTitle: "3. 稽查历史报表",
+                btnExport: "导出至 Excel",
+                btnGenerate: "生成报表",
+                thQty: "拣货数量",
+                thPicker: "拣货员",
+                thScan: "扫描数量",
+                successUpload: "上传成功！",
+                errTote: "未找到该箱号或数据为空。",
+                totalTotes: "总稽查箱数",
+                totalItems: "总稽查件数",
+                extraRate: "多扫率",
+                missingRate: "漏扫率"
+            }
+        };
+
+        let currentLang = 'en';
+        let currentToteItems = [];
+        let stagedAuditItems = [];
+        let lastReportData = [];
+        let currentAuditor = "";
+        let currentShift = "";
+        let currentBuilding = "";
+        let currentToteId = "";
+
+        function updateUI() {
+            const t = i18n[currentLang];
+            document.getElementById('ui-title').innerText = t.title;
+            document.getElementById('ui-upload-title').innerText = t.uploadTitle;
+            document.getElementById('ui-upload-btn-text').innerText = t.uploadBtn;
+            document.getElementById('ui-upload-hint').innerText = t.uploadHint;
+            document.getElementById('ui-audit-title').innerText = t.auditTitle;
+            document.getElementById('ui-auditor-label').innerText = t.auditor;
+            document.getElementById('ui-building-label').innerText = t.building;
+            document.getElementById('ui-shift-label').innerText = t.shift;
+            document.getElementById('btn-start-audit').innerText = t.confirm;
+            document.getElementById('ui-scan-tote-label').innerText = t.scanTote;
+            document.getElementById('ui-btn-next-tote').innerText = t.btnNext;
+            document.getElementById('ui-scan-product-label').innerText = t.scanProduct;
+            document.getElementById('ui-report-title').innerText = t.reportTitle;
+            document.getElementById('ui-btn-export-text').innerText = t.btnExport;
+            document.getElementById('btn-generate-report').innerText = t.btnGenerate;
+            document.getElementById('ui-th-qty').innerText = t.thQty;
+            document.getElementById('ui-th-picker').innerText = t.thPicker;
+            document.getElementById('ui-th-scan').innerText = t.thScan;
+        }
+
+        document.getElementById('lang-select').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            updateUI();
+        });
+
+        function getFormattedDate() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                   String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+        }
+
+        // --- 1. Excel 上传逻辑 (表名 pick_details 使用原始映射) ---
+        document.getElementById('excel-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const statusDiv = document.getElementById('upload-status');
+            const progressText = document.getElementById('progress-text');
+            const progressBar = document.getElementById('progress-bar');
+            statusDiv.classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const data = evt.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                    if (rows.length === 0) throw new Error("File is empty.");
+
+                    const uniqueToteIds = Array.from(new Set(
+                        rows.map(r => r['Picking tote'] ? String(r['Picking tote']).trim() : null)
+                            .filter(Boolean)
+                    ));
+                    
+                    if (uniqueToteIds.length === 0) throw new Error("No valid Picking totes found.");
+
+                    progressText.innerText = `Cleaning existing records (Batch Deleting)...`;
+                    const delBatchSize = 400; 
+                    for (let i = 0; i < uniqueToteIds.length; i += delBatchSize) {
+                        const chunk = uniqueToteIds.slice(i, i + delBatchSize);
+                        const { error: delError } = await supabaseClient
+                            .from('pick_details')
+                            .delete()
+                            .in('Picking tote', chunk);
+                        
+                        if (delError) throw delError;
+                        
+                        const delPercent = Math.round(((i + chunk.length) / uniqueToteIds.length) * 100);
+                        progressBar.style.width = delPercent + "%";
+                    }
+
+                    progressText.innerText = `Preparing ${rows.length} rows for insertion...`;
+
+                    const batchSize = 1000;
+                    for (let i = 0; i < rows.length; i += batchSize) {
+                        const batch = rows.slice(i, i + batchSize).map(row => {
+                            let pickTimeRaw = row['Picking Time'];
+                            let pickTimeClean = null;
+                            if (pickTimeRaw && pickTimeRaw !== "N/A" && pickTimeRaw !== "") {
+                                const d = new Date(pickTimeRaw);
+                                pickTimeClean = isNaN(d.getTime()) ? null : d.toISOString();
+                            }
+                            return {
+                                "Warehouse": String(row['Warehouse'] || "N/A"), 
+                                "Park": String(row['Park'] || "N/A"), 
+                                "Sub-warehouses": String(row['Sub-warehouses'] || "N/A"),
+                                "Task No.": String(row['Task No.'] || "N/A"), 
+                                "Wave ID": String(row['Wave ID'] || "N/A"), 
+                                "Picking tote": String(row['Picking tote'] || "N/A").trim(),
+                                "SKC": String(row['SKC'] || "N/A"), 
+                                "size": String(row['size'] || "N/A"), 
+                                "Picking quantity": Number(row['Picking quantity']) || 0,
+                                "1st sorting quantity": Number(row['1st sorting quantity']) || 0, 
+                                "2nd sorting quantity": Number(row['2nd sorting quantity']) || 0,
+                                "Picker": String(row['Picker'] || "N/A"), 
+                                "Picking Time": pickTimeClean, 
+                                "Storage attribute name": String(row['Storage attribute name'] || "N/A"), 
+                                "SKU": String(row['SKU'] || "N/A")
+                            };
+                        });
+                        const { error: insError } = await supabaseClient.from('pick_details').insert(batch);
+                        if (insError) throw insError;
+                        const percent = Math.round(((i + batch.length) / rows.length) * 100);
+                        progressBar.style.width = percent + "%";
+                        progressText.innerText = `Uploading: ${percent}%`;
+                    }
+                    progressText.innerText = i18n[currentLang].successUpload;
+                    setTimeout(() => statusDiv.classList.add('hidden'), 3000);
+                } catch (err) { alert("Upload Failed: " + err.message); statusDiv.classList.add('hidden'); }
+            };
+            reader.readAsBinaryString(file);
+        });
+
+        // 2. 身份确认
+        document.getElementById('btn-start-audit').addEventListener('click', () => {
+            currentAuditor = document.getElementById('auditor-name').value;
+            currentBuilding = document.getElementById('auditor-building').value;
+            currentShift = document.getElementById('auditor-shift').value;
+            if (!currentAuditor) return alert("Enter Auditor Name");
+            document.getElementById('audit-login').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('scan-workspace').classList.remove('hidden');
+        });
+
+        // 3. 扫描 Tote
+        document.getElementById('tote-input').addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const toteId = e.target.value.trim();
+                if (!toteId) return;
+                currentToteId = toteId;
+                try {
+                    const { data, error } = await supabaseClient.from('pick_details').select('*').eq('Picking tote', toteId);
+                    if (error) throw error;
+                    if (!data || data.length === 0) { alert(i18n[currentLang].errTote); return; }
+                    currentToteItems = data.map(item => ({
+                        picking_tote: item['Picking tote'], skc: item['SKC'], sku: item['SKU'],
+                        picking_quantity: item['Picking quantity'], picker: item['Picker'], scan_qty: 0, is_extra: false
+                    }));
+                    renderAuditTable();
+                    document.getElementById('product-input').disabled = false;
+                    document.getElementById('product-input').focus();
+                } catch (err) { alert("Query Error: " + err.message); }
+            }
+        });
+
+        // 4. 扫描商品
+        document.getElementById('product-input').addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const rawBarcode = e.target.value.trim();
+                if (!rawBarcode) return;
+                const barcd10 = rawBarcode.slice(-10);
+                e.target.value = ""; 
+                try {
+                    const { data: prodData } = await supabaseClient.from('product_data').select('skc, sku').eq('goods_bar_cd', barcd10).single();
+                    if (!prodData) {
+                        addExtraRow("N/A", "N/A", barcd10);
+                    } else {
+                        const matchIndex = currentToteItems.findIndex(item => item.sku === prodData.sku);
+                        if (matchIndex > -1) {
+                            currentToteItems[matchIndex].scan_qty += 1;
+                            const matchedItem = currentToteItems.splice(matchIndex, 1)[0];
+                            currentToteItems.unshift(matchedItem);
+                        } else {
+                            addExtraRow(prodData.skc, prodData.sku, barcd10);
+                        }
+                    }
+                    renderAuditTable();
+                } catch (err) { addExtraRow("ERROR", "NOT FOUND", barcd10); renderAuditTable(); }
+            }
+        });
+
+        function addExtraRow(skc, sku, barcode) {
+            const inheritedPicker = currentToteItems.find(i => !i.is_extra)?.picker || "N/A";
+            currentToteItems.unshift({
+                picking_tote: currentToteId, skc: skc, sku: sku,
+                picking_quantity: 0, picker: inheritedPicker, scan_qty: 1, is_extra: true
+            });
+        }
+
+        function renderAuditTable() {
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = "";
+            currentToteItems.forEach(item => {
+                const row = document.createElement('tr');
+                const p = item.picking_quantity;
+                const s = item.scan_qty;
+                if (item.is_extra) row.className = "row-partial";
+                else if (s === 0) row.className = "row-extra";
+                else if (s < p) row.className = "row-partial";
+                else if (s === p) row.className = "row-complete";
+                else row.className = "row-partial";
+                row.innerHTML = `<td class="px-4 py-2 border">${item.picking_tote}</td><td class="px-4 py-2 border">${item.skc}</td><td class="px-4 py-2 border">${item.sku}</td><td class="px-4 py-2 border font-bold">${p}</td><td class="px-4 py-2 border text-gray-600">${item.picker}</td><td class="px-4 py-2 border font-bold text-blue-700">${s}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.getElementById('btn-next-tote').addEventListener('click', () => {
+            if (currentToteItems.length === 0) return;
+            stagedAuditItems = [...stagedAuditItems, ...currentToteItems];
+            document.getElementById('staged-count').innerText = new Set(stagedAuditItems.map(i => i.picking_tote)).size;
+            currentToteItems = [];
+            currentToteId = "";
+            document.getElementById('audit-table-body').innerHTML = "";
+            document.getElementById('tote-input').value = "";
+            document.getElementById('product-input').value = "";
+            document.getElementById('product-input').disabled = true;
+            document.getElementById('tote-input').focus();
+        });
+
+        // --- 6. 稽查数据上传 (精准修复：pick_audit 表字段名为 "picking tote") ---
+        document.getElementById('btn-end-audit').addEventListener('click', async () => {
+            const finalBatch = [...stagedAuditItems, ...currentToteItems];
+            if (finalBatch.length === 0) return;
+
+            const timeNow = getFormattedDate();
+            const toteIds = Array.from(new Set(finalBatch.map(item => item.picking_tote)));
+            const dataArray = finalBatch.map(item => {
+                const pQty = item.picking_quantity || 0;
+                const sQty = item.scan_qty || 0;
+                return {
+                    "picking tote": item.picking_tote, // 精准修复：全小写
+                    "skc": item.skc,
+                    "sku": item.sku,
+                    "Picking quantity": pQty,
+                    "picker": item.picker,
+                    "scan quantity": sQty,
+                    "auditor": currentAuditor,
+                    "audit shift": currentShift,
+                    "audit_time": timeNow,
+                    "building": currentBuilding,
+                    "missing_quantity": Math.max(0, pQty - sQty),
+                    "extra_quantity": Math.max(0, sQty - pQty)
+                };
+            });
+
+            try {
+                const delBatchSize = 400;
+                for (let i = 0; i < toteIds.length; i += delBatchSize) {
+                    const chunk = toteIds.slice(i, i + delBatchSize);
+                    // 精准修复：使用全小写字段名并加双引号包裹
+                    const { error: delError } = await supabaseClient
+                        .from('pick_audit')
+                        .delete()
+                        .in('"picking tote"', chunk); 
+                    if (delError) throw delError;
+                }
+
+                const { error: insError } = await supabaseClient.from('pick_audit').insert(dataArray);
+                if (insError) throw insError;
+
+                alert("Audit saved and updated!");
+                stagedAuditItems = [];
+                currentToteItems = [];
+                document.getElementById('staged-count').innerText = "0";
+                document.getElementById('audit-table-body').innerHTML = "";
+                document.getElementById('tote-input').value = "";
+                document.getElementById('tote-input').focus();
+            } catch (err) { alert("Operation Failed: " + err.message); }
+        });
+
+        // 7. 报表查询
+        document.getElementById('btn-generate-report').addEventListener('click', async () => {
+            const bldg = document.getElementById('filter-building').value;
+            const shift = document.getElementById('filter-shift').value;
+            const date = document.getElementById('filter-date').value;
+            const auditor = document.getElementById('filter-auditor').value;
+            const loader = document.getElementById('report-loader');
+            loader.classList.remove('hidden');
+            try {
+                let query = supabaseClient.from('pick_audit').select('*');
+                if (bldg) query = query.eq('building', bldg);
+                if (shift) query = query.eq('audit shift', shift);
+                if (date) query = query.gte('audit_time', `${date} 00:00:00`).lte('audit_time', `${date} 23:59:59`);
+                if (auditor) query = query.ilike('auditor', `%${auditor}%`);
+                const { data, error } = await query.order('audit_time', { ascending: false });
+                if (error) throw error;
+                lastReportData = data;
+                renderReportTable(data);
+                renderSummaryDashboard(data);
+            } catch (err) { alert("Report Error: " + err.message); }
+            finally { loader.classList.add('hidden'); }
+        });
+
+        function renderReportTable(data) {
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = "";
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                if (row.missing_quantity > 0 && row.scan_quantity === 0) tr.className = "row-extra";
+                else if (row.missing_quantity > 0 || row.extra_quantity > 0) tr.className = "row-partial";
+                // 报表读取也对齐全小写 "picking tote"
+                tr.innerHTML = `<td class="px-3 py-1 border">${row["picking tote"]}</td><td class="px-3 py-1 border">${row["skc"]}</td><td class="px-3 py-1 border">${row["sku"]}</td><td class="px-3 py-1 border text-gray-500">${row["picker"]}</td><td class="px-3 py-1 border font-bold">${row["Picking quantity"]}</td><td class="px-3 py-1 border font-bold text-blue-600">${row["scan quantity"]}</td><td class="px-3 py-1 border font-bold text-red-600">${row.missing_quantity}</td><td class="px-3 py-1 border font-bold text-orange-600">${row.extra_quantity}</td><td class="px-3 py-1 border text-[10px]">${row["audit shift"]}</td><td class="px-3 py-1 border text-[10px] tracking-tighter">${row.building}</td><td class="px-3 py-1 border text-[10px]">${row["audit_time"]}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 8. 可视化看板渲染 (对齐全小写字段名)
+        function renderSummaryDashboard(data) {
+            const dashboard = document.getElementById('summary-dashboard');
+            if (!dashboard) return;
+            dashboard.innerHTML = "";
+            dashboard.classList.remove('hidden');
+
+            const overall = { totalPick: 0, totalScan: 0, totalExtra: 0, totalMissing: 0, totes: new Set() };
+            const pickerMap = {};
+            data.forEach(row => {
+                const pQty = row["Picking quantity"] || 0;
+                const sQty = row["scan quantity"] || 0;
+                const eQty = row["extra_quantity"] || 0;
+                const mQty = row["missing_quantity"] || 0;
+                const pickerName = row.picker || "Unknown";
+                overall.totalPick += pQty; overall.totalScan += sQty; overall.totalExtra += eQty; overall.totalMissing += mQty; 
+                overall.totes.add(row["picking tote"]); // 对齐全小写
+                if (!pickerMap[pickerName]) pickerMap[pickerName] = { pick: 0, scan: 0, extra: 0, missing: 0, toteCount: new Set() };
+                pickerMap[pickerName].pick += pQty; pickerMap[pickerName].scan += sQty; pickerMap[pickerName].extra += eQty; pickerMap[pickerName].missing += mQty; 
+                pickerMap[pickerName].toteCount.add(row["picking tote"]); // 对齐全小写
+            });
+
+            const summaryHTML = `
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-blue-50 p-2 shadow-sm rounded border-l-4 border-blue-500"><p class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Totes</p><p class="text-lg font-black tracking-tight">${overall.totes.size}</p></div>
+                    <div class="bg-indigo-50 p-2 shadow-sm rounded border-l-4 border-indigo-500"><p class="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">Scan Qty</p><p class="text-lg font-black tracking-tight">${overall.totalScan}</p></div>
+                    <div class="bg-red-50 p-2 shadow-sm rounded border-l-4 border-red-500"><p class="text-[10px] font-bold text-red-600 uppercase text-xs tracking-tighter">Missing %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalMissing / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div>
+                    <div class="bg-orange-50 p-2 shadow-sm rounded border-l-4 border-orange-500"><p class="text-[10px] font-bold text-orange-600 uppercase text-xs tracking-tighter">Extra %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalExtra / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div>
+                </div>`;
+
+            let pickerCardsHTML = `
+                <div class="mt-2">
+                    <h3 class="text-xs font-bold text-gray-700 mb-2 border-l-4 border-purple-600 pl-2">Picker Performance Analysis</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">`;
+
+            Object.keys(pickerMap).forEach(name => {
+                const stats = pickerMap[name];
+                const mRate = stats.pick ? ((stats.missing / stats.pick) * 100).toFixed(2) : (stats.missing > 0 ? "100.00" : "0.00");
+                const eRate = stats.pick ? ((stats.extra / stats.pick) * 100).toFixed(2) : "0.00";
+                
+                pickerCardsHTML += `
+                    <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm relative overflow-hidden transition hover:shadow-md">
+                        <div class="flex items-center gap-1 mb-1 border-b pb-1">
+                            <div class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 text-[9px] font-bold uppercase">${name.charAt(0)}</div>
+                            <p class="text-[10px] font-bold text-gray-800 truncate" title="${name}">${name}</p>
+                        </div>
+                        <div class="grid grid-cols-2 text-[9px] mb-1">
+                            <div><span class="text-gray-400 font-mono">M:</span> <span class="font-bold text-red-500">${stats.missing}</span></div>
+                            <div><span class="text-gray-400 font-mono">E:</span> <span class="font-bold text-orange-500">${stats.extra}</span></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Miss%</span><span class="${parseFloat(mRate) > 0 ? 'text-red-600 font-bold' : ''}">${mRate}%</span></div><div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden"><div class="bg-red-500 h-full" style="width: ${Math.min(parseFloat(mRate), 100)}%"></div></div></div>
+                            <div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Extra%</span><span class="${parseFloat(eRate) > 0 ? 'text-orange-600 font-bold' : ''}">${eRate}%</span></div><div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden"><div class="bg-orange-400 h-full" style="width: ${Math.min(parseFloat(eRate), 100)}%"></div></div></div>
+                        </div>
+                        <div class="mt-1 pt-1 border-t flex justify-between text-[8px] text-gray-400">
+                            <span>${stats.toteCount.size} Totes</span><span>Qty:${stats.pick}</span>
+                        </div>
+                    </div>`;
+            });
+            pickerCardsHTML += `</div></div>`;
+            dashboard.innerHTML = summaryHTML + pickerCardsHTML;
+        }
+
+        document.getElementById('btn-export').addEventListener('click', () => {
+            if (lastReportData.length === 0) return;
+            const ws = XLSX.utils.json_to_sheet(lastReportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "AuditReport");
+            XLSX.writeFile(wb, `KY_Audit_Report_${new Date().getTime()}.xlsx`);
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>
