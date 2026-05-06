@@ -57,9 +57,33 @@
             </div>
         </section>
 
-        <!-- 第二部分：稽查工作区 -->
+        <!-- 第二部分：Tote ID Query -->
+        <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
+            <h2 class="text-lg font-semibold mb-4" id="ui-query-title">2. Tote ID Query</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <input type="text" id="query-input-1" class="query-field border-2 border-gray-200 rounded-md p-2 focus:border-yellow-500 outline-none" placeholder="Scan Barcode 1">
+                <input type="text" id="query-input-2" class="query-field border-2 border-gray-200 rounded-md p-2 focus:border-yellow-500 outline-none" placeholder="Scan Barcode 2">
+                <input type="text" id="query-input-3" class="query-field border-2 border-gray-200 rounded-md p-2 focus:border-yellow-500 outline-none" placeholder="Scan Barcode 3">
+                <button id="btn-query-clear" class="bg-gray-500 text-white py-2 rounded hover:bg-gray-600 font-bold transition">Clear All</button>
+            </div>
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-wave">Wave ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-tote-q">Picking Tote</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-picker-q">Picker</th>
+                        </tr>
+                    </thead>
+                    <tbody id="query-results-body" class="divide-y divide-gray-200 bg-white text-sm">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第三部分：稽查工作区 -->
         <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500">
-            <h2 class="text-lg font-semibold mb-4" id="ui-audit-title">2. Audit Workspace</h2>
+            <h2 class="text-lg font-semibold mb-4" id="ui-audit-title">3. Audit Workspace</h2>
             
             <div id="audit-login" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
@@ -127,9 +151,9 @@
             </div>
         </section>
 
-        <!-- 第三部分：报表与统计 -->
+        <!-- 第四部分：报表与统计 -->
         <section class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-500">
-            <h2 class="text-lg font-semibold mb-4" id="ui-report-title">3. Session Audit Report</h2>
+            <h2 class="text-lg font-semibold mb-4" id="ui-report-title">4. Session Audit Report</h2>
             
             <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
@@ -181,6 +205,7 @@
                                 <th class="px-3 py-2 border text-red-600">Missing</th>
                                 <th class="px-3 py-2 border text-orange-600">Extra</th>
                                 <th class="px-3 py-2 border">Shift</th>
+                                <th class="px-3 py-2 border">Building</th>
                                 <th class="px-3 py-2 border text-[10px]">Time</th>
                             </tr>
                         </thead>
@@ -202,9 +227,15 @@
             en: {
                 title: "KY's Picking Quality Audit Tool",
                 uploadTitle: "1. Pick Details Upload",
+                queryTitle: "2. Tote ID Query",
+                queryPlaceholder: "Scan Barcode...",
+                queryClear: "Clear All",
+                thWave: "Wave ID",
+                thTote: "Picking Tote",
+                thPickerQ: "Picker",
                 uploadBtn: "Select XLSX File",
                 uploadHint: "Support large files (40k-60k rows)",
-                auditTitle: "2. Audit Workspace",
+                auditTitle: "3. Audit Workspace",
                 auditor: "Auditor Name",
                 building: "Building",
                 shift: "Shift",
@@ -213,25 +244,27 @@
                 btnNext: "Audit Next Tote",
                 scanProduct: "Scan Product Barcode",
                 btnEnd: "Finish Audit & Upload All",
-                reportTitle: "3. Session Audit Report",
+                reportTitle: "4. Session Audit Report",
                 btnExport: "Export to Excel",
                 btnGenerate: "Generate Report",
                 thQty: "Picking Qty",
                 thPicker: "Picker",
                 thScan: "Scan Qty",
                 successUpload: "Upload successful!",
-                errTote: "Tote not found or empty.",
-                totalTotes: "Total Totes",
-                totalItems: "Total Scan Qty",
-                extraRate: "Extra Rate",
-                missingRate: "Missing Rate"
+                errTote: "Tote not found or empty."
             },
             es: {
                 title: "Herramienta de Auditoría KY",
                 uploadTitle: "1. Carga de Picking",
+                queryTitle: "2. Consulta de Tote",
+                queryPlaceholder: "Escanear Código...",
+                queryClear: "Limpiar Todo",
+                thWave: "ID de Ola",
+                thTote: "Tote de Picking",
+                thPickerQ: "Picker",
                 uploadBtn: "Seleccionar XLSX",
                 uploadHint: "Archivos grandes (40k-60k)",
-                auditTitle: "2. Auditoría",
+                auditTitle: "3. Auditoría",
                 auditor: "Auditor",
                 building: "Edificio",
                 shift: "Turno",
@@ -240,25 +273,27 @@
                 btnNext: "Siguiente Tote",
                 scanProduct: "Escanear Producto",
                 btnEnd: "Finalizar y Subir",
-                reportTitle: "3. Reporte de Auditoría",
+                reportTitle: "4. Reporte de Auditoría",
                 btnExport: "Exportar a Excel",
                 btnGenerate: "Generar Reporte",
                 thQty: "Cant. Picking",
                 thPicker: "Picker",
                 thScan: "Cant. Scan",
                 successUpload: "Carga exitosa!",
-                errTote: "Tote no encontrado.",
-                totalTotes: "Totes Totales",
-                totalItems: "Total Scan",
-                extraRate: "Tasa de Extras",
-                missingRate: "Tasa de Faltantes"
+                errTote: "Tote no encontrado."
             },
             zh: {
                 title: "KY 拣货质量稽查工具",
                 uploadTitle: "1. 拣货明细上传",
+                queryTitle: "2. 箱号快速查询",
+                queryPlaceholder: "扫描条码...",
+                queryClear: "一键清空",
+                thWave: "波次号 (Wave ID)",
+                thTote: "拣货箱号 (Tote)",
+                thPickerQ: "拣货员",
                 uploadBtn: "选择 Excel 文件",
                 uploadHint: "支持大文件 (4万-6万行数据)",
-                auditTitle: "2. 稽查工作区",
+                auditTitle: "3. 稽查工作区",
                 auditor: "稽查员姓名",
                 building: "楼栋",
                 shift: "班次",
@@ -267,18 +302,14 @@
                 btnNext: "稽查下一箱",
                 scanProduct: "扫描商品条码",
                 btnEnd: "结束稽查并上传全部",
-                reportTitle: "3. 稽查历史报表",
+                reportTitle: "4. 稽查历史报表",
                 btnExport: "导出至 Excel",
                 btnGenerate: "生成报表",
                 thQty: "拣货数量",
                 thPicker: "拣货员",
                 thScan: "扫描数量",
                 successUpload: "上传成功！",
-                errTote: "未找到该箱号或数据为空。",
-                totalTotes: "总稽查箱数",
-                totalItems: "总稽查件数",
-                extraRate: "多扫率",
-                missingRate: "漏扫率"
+                errTote: "未找到该箱号或数据为空。"
             }
         };
 
@@ -297,6 +328,12 @@
             document.getElementById('ui-upload-title').innerText = t.uploadTitle;
             document.getElementById('ui-upload-btn-text').innerText = t.uploadBtn;
             document.getElementById('ui-upload-hint').innerText = t.uploadHint;
+            document.getElementById('ui-query-title').innerText = t.queryTitle;
+            document.getElementById('btn-query-clear').innerText = t.queryClear;
+            document.querySelectorAll('.query-field').forEach(el => el.placeholder = t.queryPlaceholder);
+            document.getElementById('ui-th-wave').innerText = t.thWave;
+            document.getElementById('ui-th-tote-q').innerText = t.thTote;
+            document.getElementById('ui-th-picker-q').innerText = t.thPickerQ;
             document.getElementById('ui-audit-title').innerText = t.auditTitle;
             document.getElementById('ui-auditor-label').innerText = t.auditor;
             document.getElementById('ui-building-label').innerText = t.building;
@@ -324,7 +361,7 @@
                    String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
         }
 
-        // --- 1. Excel 上传逻辑 (表名 pick_details 使用原始映射) ---
+        // --- 1. Excel 上传逻辑 ---
         document.getElementById('excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -339,36 +376,42 @@
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, { type: 'binary' });
                     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
                     if (rows.length === 0) throw new Error("File is empty.");
 
-                    const uniqueToteIds = Array.from(new Set(
-                        rows.map(r => r['Picking tote'] ? String(r['Picking tote']).trim() : null)
-                            .filter(Boolean)
-                    ));
-                    
+                    const toteWaveTimeMap = new Map();
+                    rows.forEach(row => {
+                        const tote = String(row['Picking tote'] || "").trim();
+                        const wave = String(row['Wave ID'] || "N/A");
+                        const pTime = row['Picking Time'] ? new Date(row['Picking Time']).getTime() : 0;
+                        if (!tote) return;
+                        if (!toteWaveTimeMap.has(tote)) {
+                            toteWaveTimeMap.set(tote, { wave: wave, maxTime: pTime });
+                        } else {
+                            const current = toteWaveTimeMap.get(tote);
+                            if (pTime > current.maxTime) {
+                                toteWaveTimeMap.set(tote, { wave: wave, maxTime: pTime });
+                            }
+                        }
+                    });
+
+                    const filteredRows = rows.filter(row => {
+                        const tote = String(row['Picking tote'] || "").trim();
+                        const wave = String(row['Wave ID'] || "N/A");
+                        return toteWaveTimeMap.get(tote).wave === wave;
+                    });
+
+                    const uniqueToteIds = Array.from(new Set(filteredRows.map(r => String(r['Picking tote']).trim())));
                     if (uniqueToteIds.length === 0) throw new Error("No valid Picking totes found.");
 
-                    progressText.innerText = `Cleaning existing records (Batch Deleting)...`;
                     const delBatchSize = 400; 
                     for (let i = 0; i < uniqueToteIds.length; i += delBatchSize) {
                         const chunk = uniqueToteIds.slice(i, i + delBatchSize);
-                        const { error: delError } = await supabaseClient
-                            .from('pick_details')
-                            .delete()
-                            .in('Picking tote', chunk);
-                        
-                        if (delError) throw delError;
-                        
-                        const delPercent = Math.round(((i + chunk.length) / uniqueToteIds.length) * 100);
-                        progressBar.style.width = delPercent + "%";
+                        await supabaseClient.from('pick_details').delete().in('Picking tote', chunk);
                     }
 
-                    progressText.innerText = `Preparing ${rows.length} rows for insertion...`;
-
                     const batchSize = 1000;
-                    for (let i = 0; i < rows.length; i += batchSize) {
-                        const batch = rows.slice(i, i + batchSize).map(row => {
+                    for (let i = 0; i < filteredRows.length; i += batchSize) {
+                        const batch = filteredRows.slice(i, i + batchSize).map(row => {
                             let pickTimeRaw = row['Picking Time'];
                             let pickTimeClean = null;
                             if (pickTimeRaw && pickTimeRaw !== "N/A" && pickTimeRaw !== "") {
@@ -376,26 +419,15 @@
                                 pickTimeClean = isNaN(d.getTime()) ? null : d.toISOString();
                             }
                             return {
-                                "Warehouse": String(row['Warehouse'] || "N/A"), 
-                                "Park": String(row['Park'] || "N/A"), 
-                                "Sub-warehouses": String(row['Sub-warehouses'] || "N/A"),
-                                "Task No.": String(row['Task No.'] || "N/A"), 
-                                "Wave ID": String(row['Wave ID'] || "N/A"), 
-                                "Picking tote": String(row['Picking tote'] || "N/A").trim(),
-                                "SKC": String(row['SKC'] || "N/A"), 
-                                "size": String(row['size'] || "N/A"), 
-                                "Picking quantity": Number(row['Picking quantity']) || 0,
-                                "1st sorting quantity": Number(row['1st sorting quantity']) || 0, 
-                                "2nd sorting quantity": Number(row['2nd sorting quantity']) || 0,
-                                "Picker": String(row['Picker'] || "N/A"), 
-                                "Picking Time": pickTimeClean, 
-                                "Storage attribute name": String(row['Storage attribute name'] || "N/A"), 
-                                "SKU": String(row['SKU'] || "N/A")
+                                "Warehouse": String(row['Warehouse'] || "N/A"), "Park": String(row['Park'] || "N/A"), "Sub-warehouses": String(row['Sub-warehouses'] || "N/A"),
+                                "Task No.": String(row['Task No.'] || "N/A"), "Wave ID": String(row['Wave ID'] || "N/A"), "Picking tote": String(row['Picking tote'] || "N/A").trim(),
+                                "SKC": String(row['SKC'] || "N/A"), "size": String(row['size'] || "N/A"), "Picking quantity": Number(row['Picking quantity']) || 0,
+                                "1st sorting quantity": Number(row['1st sorting quantity']) || 0, "2nd sorting quantity": Number(row['2nd sorting quantity']) || 0,
+                                "Picker": String(row['Picker'] || "N/A"), "Picking Time": pickTimeClean, "Storage attribute name": String(row['Storage attribute name'] || "N/A"), "SKU": String(row['SKU'] || "N/A")
                             };
                         });
-                        const { error: insError } = await supabaseClient.from('pick_details').insert(batch);
-                        if (insError) throw insError;
-                        const percent = Math.round(((i + batch.length) / rows.length) * 100);
+                        await supabaseClient.from('pick_details').insert(batch);
+                        const percent = Math.round(((i + batch.length) / filteredRows.length) * 100);
                         progressBar.style.width = percent + "%";
                         progressText.innerText = `Uploading: ${percent}%`;
                     }
@@ -406,7 +438,95 @@
             reader.readAsBinaryString(file);
         });
 
-        // 2. 身份确认
+        // --- 2. Tote ID Query 逻辑 (问题修复点) ---
+        const qFields = [document.getElementById('query-input-1'), document.getElementById('query-input-2'), document.getElementById('query-input-3')];
+        qFields.forEach((el, idx) => {
+            el.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    if (el.value.length >= 10) el.value = el.value.slice(-10);
+                    const next = qFields.find((inp, i) => i > idx && !inp.value);
+                    if (next) next.focus(); else el.blur();
+                    await runToteQuery();
+                }
+            });
+        });
+
+        async function runToteQuery() {
+            const barcodes = qFields.map(f => f.value.trim()).filter(v => v !== "");
+            const tbody = document.getElementById('query-results-body');
+            if (barcodes.length === 0) { tbody.innerHTML = ""; return; }
+
+            try {
+                let sets = [];
+                for (const bc of barcodes) {
+                    // 1. 获取该条码对应的 SKU
+                    const { data: pData, error: pErr } = await supabaseClient
+                        .from('product_data')
+                        .select('sku')
+                        .eq('goods_bar_cd', bc)
+                        .single();
+                    
+                    if (pData && pData.sku) {
+                        // 2. 查找包含此 SKU 的箱号 (注意双引号包裹带空格列名)
+                        const { data: tData, error: tErr } = await supabaseClient
+                            .from('pick_details')
+                            .select('"Picking tote"')
+                            .eq('SKU', pData.sku);
+                        
+                        if (tData && tData.length > 0) {
+                            sets.push(new Set(tData.map(d => d['Picking tote'])));
+                        } else {
+                            sets.push(new Set()); 
+                        }
+                    } else {
+                        sets.push(new Set()); 
+                    }
+                }
+
+                if (sets.length === 0) { tbody.innerHTML = ""; return; }
+
+                // 3. 计算所有输入条码对应箱号的交集
+                let resultTotes = sets[0];
+                for (let i = 1; i < sets.length; i++) {
+                    resultTotes = new Set([...resultTotes].filter(x => sets[i].has(x)));
+                }
+
+                const finalIds = Array.from(resultTotes);
+                if (finalIds.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>No Intersection Found</td></tr>";
+                    return;
+                }
+
+                // 4. 查询最终匹配箱子的详细信息 (注意双引号包裹带空格列名)
+                const { data: finalDetails, error: detErr } = await supabaseClient
+                    .from('pick_details')
+                    .select('"Wave ID", "Picking tote", Picker')
+                    .in('"Picking tote"', finalIds);
+
+                if (detErr) throw detErr;
+
+                const uniqueMap = new Map();
+                finalDetails.forEach(r => uniqueMap.set(r['Picking tote'], r));
+
+                tbody.innerHTML = Array.from(uniqueMap.values()).map(r => `
+                    <tr>
+                        <td class="px-4 py-2 border-b">${r['Wave ID']}</td>
+                        <td class="px-4 py-2 border-b font-mono font-bold text-blue-700">${r['Picking tote']}</td>
+                        <td class="px-4 py-2 border-b">${r['Picker']}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Query Error:", err);
+            }
+        }
+
+        document.getElementById('btn-query-clear').addEventListener('click', () => {
+            qFields.forEach(f => f.value = "");
+            document.getElementById('query-results-body').innerHTML = "";
+            qFields[0].focus();
+        });
+
+        // --- 3. 稽查工作区逻辑 ---
         document.getElementById('btn-start-audit').addEventListener('click', () => {
             currentAuditor = document.getElementById('auditor-name').value;
             currentBuilding = document.getElementById('auditor-building').value;
@@ -416,143 +536,82 @@
             document.getElementById('scan-workspace').classList.remove('hidden');
         });
 
-        // 3. 扫描 Tote
         document.getElementById('tote-input').addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const toteId = e.target.value.trim();
                 if (!toteId) return;
                 currentToteId = toteId;
-                try {
-                    const { data, error } = await supabaseClient.from('pick_details').select('*').eq('Picking tote', toteId);
-                    if (error) throw error;
-                    if (!data || data.length === 0) { alert(i18n[currentLang].errTote); return; }
-                    currentToteItems = data.map(item => ({
-                        picking_tote: item['Picking tote'], skc: item['SKC'], sku: item['SKU'],
-                        picking_quantity: item['Picking quantity'], picker: item['Picker'], scan_qty: 0, is_extra: false
-                    }));
-                    renderAuditTable();
-                    document.getElementById('product-input').disabled = false;
-                    document.getElementById('product-input').focus();
-                } catch (err) { alert("Query Error: " + err.message); }
+                const { data } = await supabaseClient.from('pick_details').select('*').eq('Picking tote', toteId);
+                if (!data || data.length === 0) { alert(i18n[currentLang].errTote); return; }
+                currentToteItems = data.map(item => ({
+                    picking_tote: item['Picking tote'], skc: item['SKC'], sku: item['SKU'],
+                    picking_quantity: item['Picking quantity'], picker: item['Picker'], scan_qty: 0, is_extra: false
+                }));
+                renderAuditTable();
+                document.getElementById('product-input').disabled = false;
+                document.getElementById('product-input').focus();
             }
         });
 
-        // 4. 扫描商品
         document.getElementById('product-input').addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const rawBarcode = e.target.value.trim();
                 if (!rawBarcode) return;
                 const barcd10 = rawBarcode.slice(-10);
                 e.target.value = ""; 
-                try {
-                    const { data: prodData } = await supabaseClient.from('product_data').select('skc, sku').eq('goods_bar_cd', barcd10).single();
-                    if (!prodData) {
-                        addExtraRow("N/A", "N/A", barcd10);
-                    } else {
-                        const matchIndex = currentToteItems.findIndex(item => item.sku === prodData.sku);
-                        if (matchIndex > -1) {
-                            currentToteItems[matchIndex].scan_qty += 1;
-                            const matchedItem = currentToteItems.splice(matchIndex, 1)[0];
-                            currentToteItems.unshift(matchedItem);
-                        } else {
-                            addExtraRow(prodData.skc, prodData.sku, barcd10);
-                        }
-                    }
-                    renderAuditTable();
-                } catch (err) { addExtraRow("ERROR", "NOT FOUND", barcd10); renderAuditTable(); }
+                const { data: prodData } = await supabaseClient.from('product_data').select('skc, sku').eq('goods_bar_cd', barcd10).single();
+                if (!prodData) addExtraRow("N/A", "N/A", barcd10);
+                else {
+                    const idx = currentToteItems.findIndex(item => item.sku === prodData.sku);
+                    if (idx > -1) { currentToteItems[idx].scan_qty += 1; currentToteItems.unshift(currentToteItems.splice(idx, 1)[0]); }
+                    else addExtraRow(prodData.skc, prodData.sku, barcd10);
+                }
+                renderAuditTable();
             }
         });
 
         function addExtraRow(skc, sku, barcode) {
-            const inheritedPicker = currentToteItems.find(i => !i.is_extra)?.picker || "N/A";
-            currentToteItems.unshift({
-                picking_tote: currentToteId, skc: skc, sku: sku,
-                picking_quantity: 0, picker: inheritedPicker, scan_qty: 1, is_extra: true
-            });
+            const picker = currentToteItems.find(i => !i.is_extra)?.picker || "N/A";
+            currentToteItems.unshift({ picking_tote: currentToteId, skc, sku, picking_quantity: 0, picker, scan_qty: 1, is_extra: true });
         }
 
         function renderAuditTable() {
             const tbody = document.getElementById('audit-table-body');
-            tbody.innerHTML = "";
-            currentToteItems.forEach(item => {
-                const row = document.createElement('tr');
-                const p = item.picking_quantity;
-                const s = item.scan_qty;
-                if (item.is_extra) row.className = "row-partial";
-                else if (s === 0) row.className = "row-extra";
-                else if (s < p) row.className = "row-partial";
-                else if (s === p) row.className = "row-complete";
-                else row.className = "row-partial";
-                row.innerHTML = `<td class="px-4 py-2 border">${item.picking_tote}</td><td class="px-4 py-2 border">${item.skc}</td><td class="px-4 py-2 border">${item.sku}</td><td class="px-4 py-2 border font-bold">${p}</td><td class="px-4 py-2 border text-gray-600">${item.picker}</td><td class="px-4 py-2 border font-bold text-blue-700">${s}</td>`;
-                tbody.appendChild(row);
-            });
+            tbody.innerHTML = currentToteItems.map(item => {
+                let cls = "";
+                const p = item.picking_quantity, s = item.scan_qty;
+                if (item.is_extra) cls = "row-partial"; else if (s === 0) cls = "row-extra"; else if (s < p || s > p) cls = "row-partial"; else cls = "row-complete";
+                return `<tr class="${cls}"><td class="px-4 py-2 border">${item.picking_tote}</td><td class="px-4 py-2 border">${item.skc}</td><td class="px-4 py-2 border">${item.sku}</td><td class="px-4 py-2 border font-bold">${p}</td><td class="px-4 py-2 border text-gray-600">${item.picker}</td><td class="px-4 py-2 border font-bold text-blue-700">${s}</td></tr>`;
+            }).join('');
         }
 
         document.getElementById('btn-next-tote').addEventListener('click', () => {
             if (currentToteItems.length === 0) return;
             stagedAuditItems = [...stagedAuditItems, ...currentToteItems];
             document.getElementById('staged-count').innerText = new Set(stagedAuditItems.map(i => i.picking_tote)).size;
-            currentToteItems = [];
-            currentToteId = "";
+            currentToteItems = []; currentToteId = "";
             document.getElementById('audit-table-body').innerHTML = "";
-            document.getElementById('tote-input').value = "";
-            document.getElementById('product-input').value = "";
-            document.getElementById('product-input').disabled = true;
+            document.getElementById('tote-input').value = ""; document.getElementById('product-input').disabled = true;
             document.getElementById('tote-input').focus();
         });
 
-        // --- 6. 稽查数据上传 (精准修复：pick_audit 表字段名为 "picking tote") ---
-        document.getElementById('btn-end-audit').addEventListener('click', async () => {
+        document.getElementById('btn-end-audit').addEventListener('click', async (e) => {
             const finalBatch = [...stagedAuditItems, ...currentToteItems];
             if (finalBatch.length === 0) return;
-
             const timeNow = getFormattedDate();
+            const dataArray = finalBatch.map(item => ({
+                "picking tote": item.picking_tote, "skc": item.skc, "sku": item.sku, "Picking quantity": item.picking_quantity,
+                "picker": item.picker, "scan quantity": item.scan_qty, "auditor": currentAuditor, "audit shift": currentShift,
+                "audit_time": timeNow, "building": currentBuilding, "missing_quantity": Math.max(0, item.picking_quantity - item.scan_qty),
+                "extra_quantity": Math.max(0, item.scan_qty - item.picking_quantity)
+            }));
             const toteIds = Array.from(new Set(finalBatch.map(item => item.picking_tote)));
-            const dataArray = finalBatch.map(item => {
-                const pQty = item.picking_quantity || 0;
-                const sQty = item.scan_qty || 0;
-                return {
-                    "picking tote": item.picking_tote, // 精准修复：全小写
-                    "skc": item.skc,
-                    "sku": item.sku,
-                    "Picking quantity": pQty,
-                    "picker": item.picker,
-                    "scan quantity": sQty,
-                    "auditor": currentAuditor,
-                    "audit shift": currentShift,
-                    "audit_time": timeNow,
-                    "building": currentBuilding,
-                    "missing_quantity": Math.max(0, pQty - sQty),
-                    "extra_quantity": Math.max(0, sQty - pQty)
-                };
-            });
-
-            try {
-                const delBatchSize = 400;
-                for (let i = 0; i < toteIds.length; i += delBatchSize) {
-                    const chunk = toteIds.slice(i, i + delBatchSize);
-                    // 精准修复：使用全小写字段名并加双引号包裹
-                    const { error: delError } = await supabaseClient
-                        .from('pick_audit')
-                        .delete()
-                        .in('"picking tote"', chunk); 
-                    if (delError) throw delError;
-                }
-
-                const { error: insError } = await supabaseClient.from('pick_audit').insert(dataArray);
-                if (insError) throw insError;
-
-                alert("Audit saved and updated!");
-                stagedAuditItems = [];
-                currentToteItems = [];
-                document.getElementById('staged-count').innerText = "0";
-                document.getElementById('audit-table-body').innerHTML = "";
-                document.getElementById('tote-input').value = "";
-                document.getElementById('tote-input').focus();
-            } catch (err) { alert("Operation Failed: " + err.message); }
+            await supabaseClient.from('pick_audit').delete().in('"picking tote"', toteIds);
+            const { error } = await supabaseClient.from('pick_audit').insert(dataArray);
+            if (!error) { alert("Audit saved!"); stagedAuditItems = []; currentToteItems = []; document.getElementById('staged-count').innerText = "0"; document.getElementById('audit-table-body').innerHTML = ""; document.getElementById('tote-input').value = ""; document.getElementById('tote-input').focus(); }
         });
 
-        // 7. 报表查询
+        // --- 4. 报表查询逻辑 ---
         document.getElementById('btn-generate-report').addEventListener('click', async () => {
             const bldg = document.getElementById('filter-building').value;
             const shift = document.getElementById('filter-shift').value;
@@ -566,89 +625,53 @@
                 if (shift) query = query.eq('audit shift', shift);
                 if (date) query = query.gte('audit_time', `${date} 00:00:00`).lte('audit_time', `${date} 23:59:59`);
                 if (auditor) query = query.ilike('auditor', `%${auditor}%`);
-                const { data, error } = await query.order('audit_time', { ascending: false });
-                if (error) throw error;
+                const { data } = await query.order('audit_time', { ascending: false });
                 lastReportData = data;
                 renderReportTable(data);
                 renderSummaryDashboard(data);
-            } catch (err) { alert("Report Error: " + err.message); }
-            finally { loader.classList.add('hidden'); }
+            } finally { loader.classList.add('hidden'); }
         });
 
         function renderReportTable(data) {
             const tbody = document.getElementById('report-table-body');
-            tbody.innerHTML = "";
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                if (row.missing_quantity > 0 && row.scan_quantity === 0) tr.className = "row-extra";
-                else if (row.missing_quantity > 0 || row.extra_quantity > 0) tr.className = "row-partial";
-                // 报表读取也对齐全小写 "picking tote"
-                tr.innerHTML = `<td class="px-3 py-1 border">${row["picking tote"]}</td><td class="px-3 py-1 border">${row["skc"]}</td><td class="px-3 py-1 border">${row["sku"]}</td><td class="px-3 py-1 border text-gray-500">${row["picker"]}</td><td class="px-3 py-1 border font-bold">${row["Picking quantity"]}</td><td class="px-3 py-1 border font-bold text-blue-600">${row["scan quantity"]}</td><td class="px-3 py-1 border font-bold text-red-600">${row.missing_quantity}</td><td class="px-3 py-1 border font-bold text-orange-600">${row.extra_quantity}</td><td class="px-3 py-1 border text-[10px]">${row["audit shift"]}</td><td class="px-3 py-1 border text-[10px] tracking-tighter">${row.building}</td><td class="px-3 py-1 border text-[10px]">${row["audit_time"]}</td>`;
-                tbody.appendChild(tr);
-            });
+            tbody.innerHTML = data.map(row => {
+                const trCls = (row.missing_quantity > 0 && row.scan_quantity === 0) ? "row-extra" : (row.missing_quantity > 0 || row.extra_quantity > 0) ? "row-partial" : "";
+                return `<tr class="${trCls}">
+                    <td class="px-3 py-1 border">${row["picking tote"]}</td>
+                    <td class="px-3 py-1 border">${row["skc"]}</td>
+                    <td class="px-3 py-1 border">${row["sku"]}</td>
+                    <td class="px-3 py-1 border text-gray-500">${row["picker"]}</td>
+                    <td class="px-3 py-1 border">${row["Picking quantity"]}</td>
+                    <td class="px-3 py-1 border">${row["scan quantity"]}</td>
+                    <td class="px-3 py-1 border ${row.missing_quantity > 0 ? 'font-bold text-red-600' : ''}">${row.missing_quantity}</td>
+                    <td class="px-3 py-1 border ${row.extra_quantity > 0 ? 'font-bold text-orange-600' : ''}">${row.extra_quantity}</td>
+                    <td class="px-3 py-1 border text-[10px]">${row["audit shift"]}</td>
+                    <td class="px-3 py-1 border text-[10px]">${row.building}</td>
+                    <td class="px-3 py-1 border text-[10px]">${row["audit_time"]}</td>
+                </tr>`;
+            }).join('');
         }
 
-        // 8. 可视化看板渲染 (对齐全小写字段名)
         function renderSummaryDashboard(data) {
             const dashboard = document.getElementById('summary-dashboard');
             if (!dashboard) return;
             dashboard.innerHTML = "";
             dashboard.classList.remove('hidden');
-
             const overall = { totalPick: 0, totalScan: 0, totalExtra: 0, totalMissing: 0, totes: new Set() };
             const pickerMap = {};
             data.forEach(row => {
-                const pQty = row["Picking quantity"] || 0;
-                const sQty = row["scan quantity"] || 0;
-                const eQty = row["extra_quantity"] || 0;
-                const mQty = row["missing_quantity"] || 0;
-                const pickerName = row.picker || "Unknown";
-                overall.totalPick += pQty; overall.totalScan += sQty; overall.totalExtra += eQty; overall.totalMissing += mQty; 
-                overall.totes.add(row["picking tote"]); // 对齐全小写
-                if (!pickerMap[pickerName]) pickerMap[pickerName] = { pick: 0, scan: 0, extra: 0, missing: 0, toteCount: new Set() };
-                pickerMap[pickerName].pick += pQty; pickerMap[pickerName].scan += sQty; pickerMap[pickerName].extra += eQty; pickerMap[pickerName].missing += mQty; 
-                pickerMap[pickerName].toteCount.add(row["picking tote"]); // 对齐全小写
+                const p = row["Picking quantity"] || 0, s = row["scan quantity"] || 0, e = row["extra_quantity"] || 0, m = row["missing_quantity"] || 0;
+                overall.totalPick += p; overall.totalScan += s; overall.totalExtra += e; overall.totalMissing += m; overall.totes.add(row["picking tote"]);
+                if (!pickerMap[row.picker]) pickerMap[row.picker] = { pick: 0, scan: 0, extra: 0, missing: 0, toteCount: new Set() };
+                pickerMap[row.picker].pick += p; pickerMap[row.picker].scan += s; pickerMap[row.picker].extra += e; pickerMap[row.picker].missing += m; pickerMap[row.picker].toteCount.add(row["picking tote"]);
             });
-
-            const summaryHTML = `
-                <div class="grid grid-cols-4 gap-2">
-                    <div class="bg-blue-50 p-2 shadow-sm rounded border-l-4 border-blue-500"><p class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Totes</p><p class="text-lg font-black tracking-tight">${overall.totes.size}</p></div>
-                    <div class="bg-indigo-50 p-2 shadow-sm rounded border-l-4 border-indigo-500"><p class="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">Scan Qty</p><p class="text-lg font-black tracking-tight">${overall.totalScan}</p></div>
-                    <div class="bg-red-50 p-2 shadow-sm rounded border-l-4 border-red-500"><p class="text-[10px] font-bold text-red-600 uppercase text-xs tracking-tighter">Missing %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalMissing / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div>
-                    <div class="bg-orange-50 p-2 shadow-sm rounded border-l-4 border-orange-500"><p class="text-[10px] font-bold text-orange-600 uppercase text-xs tracking-tighter">Extra %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalExtra / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div>
-                </div>`;
-
-            let pickerCardsHTML = `
-                <div class="mt-2">
-                    <h3 class="text-xs font-bold text-gray-700 mb-2 border-l-4 border-purple-600 pl-2">Picker Performance Analysis</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">`;
-
+            const summaryHTML = `<div class="grid grid-cols-4 gap-2"><div class="bg-blue-50 p-2 shadow-sm rounded border-l-4 border-blue-500"><p class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">Totes</p><p class="text-lg font-black tracking-tight">${overall.totes.size}</p></div><div class="bg-indigo-50 p-2 shadow-sm rounded border-l-4 border-indigo-500"><p class="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">Scan Qty</p><p class="text-lg font-black tracking-tight">${overall.totalScan}</p></div><div class="bg-red-50 p-2 shadow-sm rounded border-l-4 border-red-500"><p class="text-[10px] font-bold text-red-600 uppercase text-xs tracking-tighter">Missing %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalMissing / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div><div class="bg-orange-50 p-2 shadow-sm rounded border-l-4 border-orange-500"><p class="text-[10px] font-bold text-orange-600 uppercase text-xs tracking-tighter">Extra %</p><p class="text-lg font-black tracking-tight">${overall.totalPick ? ((overall.totalExtra / overall.totalPick) * 100).toFixed(2) : '0.00'}%</p></div></div>`;
+            let pickerCardsHTML = `<div class="mt-2"><h3 class="text-xs font-bold text-gray-700 mb-2 border-l-4 border-purple-600 pl-2">Picker Performance</h3><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">`;
             Object.keys(pickerMap).forEach(name => {
-                const stats = pickerMap[name];
-                const mRate = stats.pick ? ((stats.missing / stats.pick) * 100).toFixed(2) : (stats.missing > 0 ? "100.00" : "0.00");
-                const eRate = stats.pick ? ((stats.extra / stats.pick) * 100).toFixed(2) : "0.00";
-                
-                pickerCardsHTML += `
-                    <div class="bg-white border border-gray-200 rounded p-1.5 shadow-sm relative overflow-hidden transition hover:shadow-md">
-                        <div class="flex items-center gap-1 mb-1 border-b pb-1">
-                            <div class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 text-[9px] font-bold uppercase">${name.charAt(0)}</div>
-                            <p class="text-[10px] font-bold text-gray-800 truncate" title="${name}">${name}</p>
-                        </div>
-                        <div class="grid grid-cols-2 text-[9px] mb-1">
-                            <div><span class="text-gray-400 font-mono">M:</span> <span class="font-bold text-red-500">${stats.missing}</span></div>
-                            <div><span class="text-gray-400 font-mono">E:</span> <span class="font-bold text-orange-500">${stats.extra}</span></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Miss%</span><span class="${parseFloat(mRate) > 0 ? 'text-red-600 font-bold' : ''}">${mRate}%</span></div><div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden"><div class="bg-red-500 h-full" style="width: ${Math.min(parseFloat(mRate), 100)}%"></div></div></div>
-                            <div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Extra%</span><span class="${parseFloat(eRate) > 0 ? 'text-orange-600 font-bold' : ''}">${eRate}%</span></div><div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden"><div class="bg-orange-400 h-full" style="width: ${Math.min(parseFloat(eRate), 100)}%"></div></div></div>
-                        </div>
-                        <div class="mt-1 pt-1 border-t flex justify-between text-[8px] text-gray-400">
-                            <span>${stats.toteCount.size} Totes</span><span>Qty:${stats.pick}</span>
-                        </div>
-                    </div>`;
+                const s = pickerMap[name], mRate = s.pick ? ((s.missing / s.pick) * 100).toFixed(2) : (s.missing > 0 ? "100.00" : "0.00"), eRate = s.pick ? ((s.extra / s.pick) * 100).toFixed(2) : "0.00";
+                pickerCardsHTML += `<div class="bg-white border p-1.5 shadow-sm rounded"><div class="flex items-center gap-1 mb-1 border-b pb-1"><p class="text-[10px] font-bold text-gray-800 truncate">${name}</p></div><div class="grid grid-cols-1 text-[9px] mb-1"><div><span class="text-gray-400 font-mono uppercase text-[7px]">missing:</span> <span class="font-bold text-red-500">${s.missing}</span></div><div><span class="text-gray-400 font-mono uppercase text-[7px]">extra:</span> <span class="font-bold text-orange-500">${s.extra}</span></div></div><div class="space-y-1"><div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Miss%</span><span class="${parseFloat(mRate) > 0 ? 'text-red-600 font-bold' : ''}">${mRate}%</span></div></div><div><div class="flex justify-between text-[8px]"><span class="text-gray-500">Extra%</span><span class="${parseFloat(eRate) > 0 ? 'text-orange-600 font-bold' : ''}">${eRate}%</span></div></div></div><div class="mt-1 pt-1 border-t flex justify-between text-[8px] text-gray-400"><span>${s.toteCount.size} Totes</span><span>picking qty:${s.pick}</span></div></div>`;
             });
-            pickerCardsHTML += `</div></div>`;
-            dashboard.innerHTML = summaryHTML + pickerCardsHTML;
+            dashboard.innerHTML = summaryHTML + pickerCardsHTML + `</div></div>`;
         }
 
         document.getElementById('btn-export').addEventListener('click', () => {
