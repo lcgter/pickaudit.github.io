@@ -128,6 +128,26 @@
                     </div>
                 </div>
 
+                <!-- 实时汇总看板 (Real-time Audit Tote Summary) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                    <div class="bg-white border-l-4 border-blue-500 p-3 shadow-sm rounded-md">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" id="ui-stat-pick">Total Picked Qty</p>
+                        <p class="text-2xl font-black text-blue-800" id="stat-total-pick">0</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-green-500 p-3 shadow-sm rounded-md">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" id="ui-stat-scan">Total Scanned Qty</p>
+                        <p class="text-2xl font-black text-green-700" id="stat-total-scan">0</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-orange-500 p-3 shadow-sm rounded-md">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" id="ui-stat-extra">Extra Quantity</p>
+                        <p class="text-2xl font-black text-orange-600" id="stat-total-extra">0</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-red-500 p-3 shadow-sm rounded-md">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" id="ui-stat-missing">Missing Quantity</p>
+                        <p class="text-2xl font-black text-red-600" id="stat-total-missing">0</p>
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto border rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-100">
@@ -251,7 +271,11 @@
                 thPicker: "Picker",
                 thScan: "Scan Qty",
                 successUpload: "Upload successful!",
-                errTote: "Tote not found or empty."
+                errTote: "Tote not found or empty.",
+                statPick: "Total Picked Qty",
+                statScan: "Total Scanned Qty",
+                statExtra: "Extra Quantity",
+                statMissing: "Missing Quantity"
             },
             es: {
                 title: "Herramienta de Auditoría KY",
@@ -280,7 +304,11 @@
                 thPicker: "Picker",
                 thScan: "Cant. Scan",
                 successUpload: "Carga exitosa!",
-                errTote: "Tote no encontrado."
+                errTote: "Tote no encontrado.",
+                statPick: "Total Picking",
+                statScan: "Total Escaneado",
+                statExtra: "Cantidad Extra",
+                statMissing: "Cantidad Faltante"
             },
             zh: {
                 title: "KY 拣货质量稽查工具",
@@ -309,7 +337,11 @@
                 thPicker: "拣货员",
                 thScan: "扫描数量",
                 successUpload: "上传成功！",
-                errTote: "未找到该箱号或数据为空。"
+                errTote: "未找到该箱号或数据为空。",
+                statPick: "总拣货数",
+                statScan: "总扫描数",
+                statExtra: "多扫数量",
+                statMissing: "漏扫数量"
             }
         };
 
@@ -348,6 +380,11 @@
             document.getElementById('ui-th-qty').innerText = t.thQty;
             document.getElementById('ui-th-picker').innerText = t.thPicker;
             document.getElementById('ui-th-scan').innerText = t.thScan;
+            // 新增统计看板翻译
+            document.getElementById('ui-stat-pick').innerText = t.statPick;
+            document.getElementById('ui-stat-scan').innerText = t.statScan;
+            document.getElementById('ui-stat-extra').innerText = t.statExtra;
+            document.getElementById('ui-stat-missing').innerText = t.statMissing;
         }
 
         document.getElementById('lang-select').addEventListener('change', (e) => {
@@ -438,7 +475,7 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- 2. Tote ID Query 逻辑 (问题修复点) ---
+        // --- 2. Tote ID Query 逻辑 ---
         const qFields = [document.getElementById('query-input-1'), document.getElementById('query-input-2'), document.getElementById('query-input-3')];
         qFields.forEach((el, idx) => {
             el.addEventListener('keypress', async (e) => {
@@ -459,65 +496,25 @@
             try {
                 let sets = [];
                 for (const bc of barcodes) {
-                    // 1. 获取该条码对应的 SKU
-                    const { data: pData, error: pErr } = await supabaseClient
-                        .from('product_data')
-                        .select('sku')
-                        .eq('goods_bar_cd', bc)
-                        .single();
-                    
+                    const { data: pData } = await supabaseClient.from('product_data').select('sku').eq('goods_bar_cd', bc).single();
                     if (pData && pData.sku) {
-                        // 2. 查找包含此 SKU 的箱号 (注意双引号包裹带空格列名)
-                        const { data: tData, error: tErr } = await supabaseClient
-                            .from('pick_details')
-                            .select('"Picking tote"')
-                            .eq('SKU', pData.sku);
-                        
-                        if (tData && tData.length > 0) {
-                            sets.push(new Set(tData.map(d => d['Picking tote'])));
-                        } else {
-                            sets.push(new Set()); 
-                        }
-                    } else {
-                        sets.push(new Set()); 
-                    }
+                        const { data: tData } = await supabaseClient.from('pick_details').select('"Picking tote"').eq('SKU', pData.sku);
+                        if (tData) sets.push(new Set(tData.map(d => d['Picking tote'])));
+                        else sets.push(new Set());
+                    } else sets.push(new Set());
                 }
-
                 if (sets.length === 0) { tbody.innerHTML = ""; return; }
-
-                // 3. 计算所有输入条码对应箱号的交集
                 let resultTotes = sets[0];
                 for (let i = 1; i < sets.length; i++) {
                     resultTotes = new Set([...resultTotes].filter(x => sets[i].has(x)));
                 }
-
                 const finalIds = Array.from(resultTotes);
-                if (finalIds.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>No Intersection Found</td></tr>";
-                    return;
-                }
-
-                // 4. 查询最终匹配箱子的详细信息 (注意双引号包裹带空格列名)
-                const { data: finalDetails, error: detErr } = await supabaseClient
-                    .from('pick_details')
-                    .select('"Wave ID", "Picking tote", Picker')
-                    .in('"Picking tote"', finalIds);
-
-                if (detErr) throw detErr;
-
+                if (finalIds.length === 0) { tbody.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>No Intersection Found</td></tr>"; return; }
+                const { data: finalDetails } = await supabaseClient.from('pick_details').select('"Wave ID", "Picking tote", Picker').in('"Picking tote"', finalIds);
                 const uniqueMap = new Map();
                 finalDetails.forEach(r => uniqueMap.set(r['Picking tote'], r));
-
-                tbody.innerHTML = Array.from(uniqueMap.values()).map(r => `
-                    <tr>
-                        <td class="px-4 py-2 border-b">${r['Wave ID']}</td>
-                        <td class="px-4 py-2 border-b font-mono font-bold text-blue-700">${r['Picking tote']}</td>
-                        <td class="px-4 py-2 border-b">${r['Picker']}</td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                console.error("Query Error:", err);
-            }
+                tbody.innerHTML = Array.from(uniqueMap.values()).map(r => `<tr><td class="px-4 py-2 border-b">${r['Wave ID']}</td><td class="px-4 py-2 border-b font-mono font-bold text-blue-700">${r['Picking tote']}</td><td class="px-4 py-2 border-b">${r['Picker']}</td></tr>`).join('');
+            } catch (err) { console.error(err); }
         }
 
         document.getElementById('btn-query-clear').addEventListener('click', () => {
@@ -577,12 +574,36 @@
 
         function renderAuditTable() {
             const tbody = document.getElementById('audit-table-body');
+            
+            // 初始化本次 Tote 的汇总数据
+            let totalPick = 0;
+            let totalScan = 0;
+            let totalMissing = 0;
+            let totalExtra = 0;
+
             tbody.innerHTML = currentToteItems.map(item => {
-                let cls = "";
                 const p = item.picking_quantity, s = item.scan_qty;
-                if (item.is_extra) cls = "row-partial"; else if (s === 0) cls = "row-extra"; else if (s < p || s > p) cls = "row-partial"; else cls = "row-complete";
+                
+                // 累计汇总逻辑
+                totalPick += p;
+                totalScan += s;
+                totalMissing += Math.max(0, p - s);
+                totalExtra += Math.max(0, s - p);
+
+                let cls = "";
+                if (item.is_extra) cls = "row-partial"; 
+                else if (s === 0) cls = "row-extra"; 
+                else if (s < p || s > p) cls = "row-partial"; 
+                else cls = "row-complete";
+                
                 return `<tr class="${cls}"><td class="px-4 py-2 border">${item.picking_tote}</td><td class="px-4 py-2 border">${item.skc}</td><td class="px-4 py-2 border">${item.sku}</td><td class="px-4 py-2 border font-bold">${p}</td><td class="px-4 py-2 border text-gray-600">${item.picker}</td><td class="px-4 py-2 border font-bold text-blue-700">${s}</td></tr>`;
             }).join('');
+
+            // 更新实时汇总看板
+            document.getElementById('stat-total-pick').innerText = totalPick;
+            document.getElementById('stat-total-scan').innerText = totalScan;
+            document.getElementById('stat-total-extra').innerText = totalExtra;
+            document.getElementById('stat-total-missing').innerText = totalMissing;
         }
 
         document.getElementById('btn-next-tote').addEventListener('click', () => {
@@ -591,6 +612,13 @@
             document.getElementById('staged-count').innerText = new Set(stagedAuditItems.map(i => i.picking_tote)).size;
             currentToteItems = []; currentToteId = "";
             document.getElementById('audit-table-body').innerHTML = "";
+            
+            // 重置统计数值
+            document.getElementById('stat-total-pick').innerText = "0";
+            document.getElementById('stat-total-scan').innerText = "0";
+            document.getElementById('stat-total-extra').innerText = "0";
+            document.getElementById('stat-total-missing').innerText = "0";
+
             document.getElementById('tote-input').value = ""; document.getElementById('product-input').disabled = true;
             document.getElementById('tote-input').focus();
         });
@@ -608,7 +636,18 @@
             const toteIds = Array.from(new Set(finalBatch.map(item => item.picking_tote)));
             await supabaseClient.from('pick_audit').delete().in('"picking tote"', toteIds);
             const { error } = await supabaseClient.from('pick_audit').insert(dataArray);
-            if (!error) { alert("Audit saved!"); stagedAuditItems = []; currentToteItems = []; document.getElementById('staged-count').innerText = "0"; document.getElementById('audit-table-body').innerHTML = ""; document.getElementById('tote-input').value = ""; document.getElementById('tote-input').focus(); }
+            if (!error) { 
+                alert("Audit saved!"); 
+                stagedAuditItems = []; currentToteItems = []; 
+                document.getElementById('staged-count').innerText = "0"; 
+                document.getElementById('audit-table-body').innerHTML = ""; 
+                document.getElementById('tote-input').value = ""; document.getElementById('tote-input').focus(); 
+                // 重置统计数值
+                document.getElementById('stat-total-pick').innerText = "0";
+                document.getElementById('stat-total-scan').innerText = "0";
+                document.getElementById('stat-total-extra').innerText = "0";
+                document.getElementById('stat-total-missing').innerText = "0";
+            }
         });
 
         // --- 4. 报表查询逻辑 ---
