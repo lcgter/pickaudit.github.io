@@ -117,10 +117,17 @@
                     <div class="bg-blue-50 p-4 rounded border border-blue-200">
                         <label class="block font-bold text-blue-800" id="ui-scan-tote-label">Scan Picking Tote</label>
                         <input type="text" id="tote-input" class="mt-1 block w-full border-2 border-blue-400 rounded-md p-3 text-lg focus:ring-blue-500">
-                        <button id="btn-next-tote" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 shadow flex items-center justify-center gap-2">
-                            <span id="ui-btn-next-tote">Audit Next Tote</span> 
-                            <span id="staged-count" class="bg-blue-800 px-2 py-0.5 rounded-full text-xs">0</span>
-                        </button>
+                        
+                        <!-- 修改点1：增加取消按钮与容器布局 -->
+                        <div class="flex gap-2 mt-4">
+                            <button id="btn-cancel-tote" class="flex-1 border-2 border-red-500 text-red-500 py-2 rounded-lg font-bold hover:bg-red-50 transition">
+                                <span id="ui-btn-cancel-tote">Cancel Current Tote</span>
+                            </button>
+                            <button id="btn-next-tote" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 shadow flex items-center justify-center gap-2">
+                                <span id="ui-btn-next-tote">Audit Next Tote</span> 
+                                <span id="staged-count" class="bg-blue-800 px-2 py-0.5 rounded-full text-xs">0</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="bg-orange-50 p-4 rounded border border-orange-200">
                         <label class="block font-bold text-orange-800" id="ui-scan-product-label">Scan Product Barcode</label>
@@ -158,6 +165,8 @@
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-qty">Picking Qty</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-picker">Picker</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-scan">Scan Qty</th>
+                                <!-- 修改点2：增加操作列标题 -->
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase" id="ui-th-action">Action</th>
                             </tr>
                         </thead>
                         <tbody id="audit-table-body" class="divide-y divide-gray-200 bg-white">
@@ -262,6 +271,7 @@
                 confirm: "Confirm Identity",
                 scanTote: "Scan Picking Tote",
                 btnNext: "Audit Next Tote",
+                btnCancel: "Cancel Current Tote",
                 scanProduct: "Scan Product Barcode",
                 btnEnd: "Finish Audit & Upload All",
                 reportTitle: "4. Session Audit Report",
@@ -270,6 +280,8 @@
                 thQty: "Picking Qty",
                 thPicker: "Picker",
                 thScan: "Scan Qty",
+                thAction: "Action",
+                btnDel: "Delete",
                 successUpload: "Upload successful!",
                 errTote: "Tote not found or empty.",
                 statPick: "Total Picked Qty",
@@ -295,6 +307,7 @@
                 confirm: "Confirmar",
                 scanTote: "Escanear Tote",
                 btnNext: "Siguiente Tote",
+                btnCancel: "Cancelar Tote Actual",
                 scanProduct: "Escanear Producto",
                 btnEnd: "Finalizar y Subir",
                 reportTitle: "4. Reporte de Auditoría",
@@ -303,6 +316,8 @@
                 thQty: "Cant. Picking",
                 thPicker: "Picker",
                 thScan: "Cant. Scan",
+                thAction: "Acción",
+                btnDel: "Borrar",
                 successUpload: "Carga exitosa!",
                 errTote: "Tote no encontrado.",
                 statPick: "Total Picking",
@@ -328,6 +343,7 @@
                 confirm: "确认身份",
                 scanTote: "扫描拣货周转箱 (Tote)",
                 btnNext: "稽查下一箱",
+                btnCancel: "取消本次稽查箱号",
                 scanProduct: "扫描商品条码",
                 btnEnd: "结束稽查并上传全部",
                 reportTitle: "4. 稽查历史报表",
@@ -336,6 +352,8 @@
                 thQty: "拣货数量",
                 thPicker: "拣货员",
                 thScan: "扫描数量",
+                thAction: "操作",
+                btnDel: "删除",
                 successUpload: "上传成功！",
                 errTote: "未找到该箱号或数据为空。",
                 statPick: "总拣货数",
@@ -373,6 +391,7 @@
             document.getElementById('btn-start-audit').innerText = t.confirm;
             document.getElementById('ui-scan-tote-label').innerText = t.scanTote;
             document.getElementById('ui-btn-next-tote').innerText = t.btnNext;
+            document.getElementById('ui-btn-cancel-tote').innerText = t.btnCancel;
             document.getElementById('ui-scan-product-label').innerText = t.scanProduct;
             document.getElementById('ui-report-title').innerText = t.reportTitle;
             document.getElementById('ui-btn-export-text').innerText = t.btnExport;
@@ -380,11 +399,15 @@
             document.getElementById('ui-th-qty').innerText = t.thQty;
             document.getElementById('ui-th-picker').innerText = t.thPicker;
             document.getElementById('ui-th-scan').innerText = t.thScan;
+            document.getElementById('ui-th-action').innerText = t.thAction;
             // 新增统计看板翻译
             document.getElementById('ui-stat-pick').innerText = t.statPick;
             document.getElementById('ui-stat-scan').innerText = t.statScan;
             document.getElementById('ui-stat-extra').innerText = t.statExtra;
             document.getElementById('ui-stat-missing').innerText = t.statMissing;
+            
+            // 刷新表格以更新删除按钮文字
+            if (currentToteItems.length > 0) renderAuditTable();
         }
 
         document.getElementById('lang-select').addEventListener('change', (e) => {
@@ -540,9 +563,17 @@
                 currentToteId = toteId;
                 const { data } = await supabaseClient.from('pick_details').select('*').eq('Picking tote', toteId);
                 if (!data || data.length === 0) { alert(i18n[currentLang].errTote); return; }
-                currentToteItems = data.map(item => ({
-                    picking_tote: item['Picking tote'], skc: item['SKC'], sku: item['SKU'],
-                    picking_quantity: item['Picking quantity'], picker: item['Picker'], scan_qty: 0, is_extra: false
+                
+                // 记录原始索引，以便在取消扫描后回到原位
+                currentToteItems = data.map((item, idx) => ({
+                    picking_tote: item['Picking tote'], 
+                    skc: item['SKC'], 
+                    sku: item['SKU'],
+                    picking_quantity: item['Picking quantity'], 
+                    picker: item['Picker'], 
+                    scan_qty: 0, 
+                    is_extra: false,
+                    original_idx: idx
                 }));
                 renderAuditTable();
                 document.getElementById('product-input').disabled = false;
@@ -560,8 +591,11 @@
                 if (!prodData) addExtraRow("N/A", "N/A", barcd10);
                 else {
                     const idx = currentToteItems.findIndex(item => item.sku === prodData.sku);
-                    if (idx > -1) { currentToteItems[idx].scan_qty += 1; currentToteItems.unshift(currentToteItems.splice(idx, 1)[0]); }
-                    else addExtraRow(prodData.skc, prodData.sku, barcd10);
+                    if (idx > -1) { 
+                        currentToteItems[idx].scan_qty += 1; 
+                    } else {
+                        addExtraRow(prodData.skc, prodData.sku, barcd10);
+                    }
                 }
                 renderAuditTable();
             }
@@ -569,22 +603,66 @@
 
         function addExtraRow(skc, sku, barcode) {
             const picker = currentToteItems.find(i => !i.is_extra)?.picker || "N/A";
-            currentToteItems.unshift({ picking_tote: currentToteId, skc, sku, picking_quantity: 0, picker, scan_qty: 1, is_extra: true });
+            // 多出的货，original_idx 设为极小值确保排在最前面
+            currentToteItems.push({ 
+                picking_tote: currentToteId, 
+                skc, 
+                sku, 
+                picking_quantity: 0, 
+                picker, 
+                scan_qty: 1, 
+                is_extra: true,
+                original_idx: -1
+            });
         }
 
+        // 修改点3：增加删除逻辑函数
+        window.deleteAuditRow = function(indexInRenderedList) {
+            // 获取当前显示的数据列表（已排序）
+            const sortedItems = [...currentToteItems].sort((a, b) => {
+                if (a.is_extra !== b.is_extra) return b.is_extra - a.is_extra;
+                if (a.scan_qty !== b.scan_qty) return b.scan_qty - a.scan_qty;
+                return a.original_idx - b.original_idx;
+            });
+            
+            const targetItem = sortedItems[indexInRenderedList];
+            
+            // 在原始数组中找到该项
+            const realIdx = currentToteItems.findIndex(item => item === targetItem);
+            
+            if (realIdx > -1) {
+                if (currentToteItems[realIdx].is_extra) {
+                    // 如果是额外扫入的，直接删除
+                    currentToteItems.splice(realIdx, 1);
+                } else {
+                    // 如果是原单内的，扫描数置0，会自动排回原位
+                    currentToteItems[realIdx].scan_qty = 0;
+                }
+                renderAuditTable();
+            }
+        };
+
+        // 修改点4：重构渲染函数，增加排序逻辑和删除按钮
         function renderAuditTable() {
             const tbody = document.getElementById('audit-table-body');
+            const t = i18n[currentLang];
             
-            // 初始化本次 Tote 的汇总数据
+            // 实时汇总数据
             let totalPick = 0;
             let totalScan = 0;
             let totalMissing = 0;
             let totalExtra = 0;
 
-            tbody.innerHTML = currentToteItems.map(item => {
+            // 排序逻辑：Extra优先，已扫描次之，其余按原始位置排列
+            const displayItems = [...currentToteItems].sort((a, b) => {
+                if (a.is_extra !== b.is_extra) return b.is_extra - a.is_extra;
+                if (a.scan_qty !== b.scan_qty) return b.scan_qty - a.scan_qty;
+                return a.original_idx - b.original_idx;
+            });
+
+            tbody.innerHTML = displayItems.map((item, index) => {
                 const p = item.picking_quantity, s = item.scan_qty;
                 
-                // 累计汇总逻辑
                 totalPick += p;
                 totalScan += s;
                 totalMissing += Math.max(0, p - s);
@@ -596,7 +674,19 @@
                 else if (s < p || s > p) cls = "row-partial"; 
                 else cls = "row-complete";
                 
-                return `<tr class="${cls}"><td class="px-4 py-2 border">${item.picking_tote}</td><td class="px-4 py-2 border">${item.skc}</td><td class="px-4 py-2 border">${item.sku}</td><td class="px-4 py-2 border font-bold">${p}</td><td class="px-4 py-2 border text-gray-600">${item.picker}</td><td class="px-4 py-2 border font-bold text-blue-700">${s}</td></tr>`;
+                return `<tr class="${cls}">
+                    <td class="px-4 py-2 border">${item.picking_tote}</td>
+                    <td class="px-4 py-2 border">${item.skc}</td>
+                    <td class="px-4 py-2 border">${item.sku}</td>
+                    <td class="px-4 py-2 border font-bold">${p}</td>
+                    <td class="px-4 py-2 border text-gray-600">${item.picker}</td>
+                    <td class="px-4 py-2 border font-bold text-blue-700">${s}</td>
+                    <td class="px-4 py-2 border text-center">
+                        <button onclick="deleteAuditRow(${index})" class="text-red-600 hover:text-red-800 transition p-1" title="${t.btnDel}">
+                           🗑️ <span class="text-[10px] underline ml-1">${t.btnDel}</span>
+                        </button>
+                    </td>
+                </tr>`;
             }).join('');
 
             // 更新实时汇总看板
@@ -605,6 +695,27 @@
             document.getElementById('stat-total-extra').innerText = totalExtra;
             document.getElementById('stat-total-missing').innerText = totalMissing;
         }
+
+        // 修改点5：增加取消本次稽查逻辑
+        document.getElementById('btn-cancel-tote').addEventListener('click', () => {
+            if (currentToteItems.length === 0) return;
+            if (confirm("Are you sure to clear current tote's audit data? (Won't affect previous totes)")) {
+                currentToteItems = [];
+                currentToteId = "";
+                document.getElementById('tote-input').value = "";
+                document.getElementById('product-input').value = "";
+                document.getElementById('product-input').disabled = true;
+                document.getElementById('audit-table-body').innerHTML = "";
+                
+                // 重置统计数值
+                document.getElementById('stat-total-pick').innerText = "0";
+                document.getElementById('stat-total-scan').innerText = "0";
+                document.getElementById('stat-total-extra').innerText = "0";
+                document.getElementById('stat-total-missing').innerText = "0";
+                
+                document.getElementById('tote-input').focus();
+            }
+        });
 
         document.getElementById('btn-next-tote').addEventListener('click', () => {
             if (currentToteItems.length === 0) return;
@@ -634,20 +745,24 @@
                 "extra_quantity": Math.max(0, item.scan_qty - item.picking_quantity)
             }));
             const toteIds = Array.from(new Set(finalBatch.map(item => item.picking_tote)));
-            await supabaseClient.from('pick_audit').delete().in('"picking tote"', toteIds);
-            const { error } = await supabaseClient.from('pick_audit').insert(dataArray);
-            if (!error) { 
-                alert("Audit saved!"); 
-                stagedAuditItems = []; currentToteItems = []; 
-                document.getElementById('staged-count').innerText = "0"; 
-                document.getElementById('audit-table-body').innerHTML = ""; 
-                document.getElementById('tote-input').value = ""; document.getElementById('tote-input').focus(); 
-                // 重置统计数值
-                document.getElementById('stat-total-pick').innerText = "0";
-                document.getElementById('stat-total-scan').innerText = "0";
-                document.getElementById('stat-total-extra').innerText = "0";
-                document.getElementById('stat-total-missing').innerText = "0";
-            }
+            
+            try {
+                await supabaseClient.from('pick_audit').delete().in('"picking tote"', toteIds);
+                const { error } = await supabaseClient.from('pick_audit').insert(dataArray);
+                if (!error) { 
+                    alert("Audit saved!"); 
+                    stagedAuditItems = []; currentToteItems = []; 
+                    document.getElementById('staged-count').innerText = "0"; 
+                    document.getElementById('audit-table-body').innerHTML = ""; 
+                    document.getElementById('tote-input').value = ""; 
+                    document.getElementById('tote-input').focus(); 
+                    // 重置统计数值
+                    document.getElementById('stat-total-pick').innerText = "0";
+                    document.getElementById('stat-total-scan').innerText = "0";
+                    document.getElementById('stat-total-extra').innerText = "0";
+                    document.getElementById('stat-total-missing').innerText = "0";
+                }
+            } catch (err) { alert("Save error: " + err.message); }
         });
 
         // --- 4. 报表查询逻辑 ---
