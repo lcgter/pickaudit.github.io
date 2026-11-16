@@ -440,7 +440,8 @@
 
                     const toteWaveTimeMap = new Map();
                     rows.forEach(row => {
-                        const tote = String(row['Picking tote'] || "").trim();
+                        // 【① 修改】箱号列名更新为新 sheet 的 "Picking Tote/Operation Batch Conversion"
+                        const tote = String(row['Picking Tote/Operation Batch Conversion'] || "").trim();
                         const wave = String(row['Wave ID'] || "N/A");
                         const pTime = row['Picking Time'] ? new Date(row['Picking Time']).getTime() : 0;
                         if (!tote) return;
@@ -455,12 +456,14 @@
                     });
 
                     const filteredRows = rows.filter(row => {
-                        const tote = String(row['Picking tote'] || "").trim();
+                        // 【② 修改】仅替换列名，结构与原代码一致
+                        const tote = String(row['Picking Tote/Operation Batch Conversion'] || "").trim();
                         const wave = String(row['Wave ID'] || "N/A");
                         return toteWaveTimeMap.get(tote).wave === wave;
                     });
 
-                    const uniqueToteIds = Array.from(new Set(filteredRows.map(r => String(r['Picking tote']).trim())));
+                    // 【③ 修改】仅替换列名，结构与原代码一致
+                    const uniqueToteIds = Array.from(new Set(filteredRows.map(r => String(r['Picking Tote/Operation Batch Conversion']).trim())));
                     if (uniqueToteIds.length === 0) throw new Error("No valid Picking totes found.");
 
                     const delBatchSize = 400; 
@@ -480,9 +483,12 @@
                             }
                             return {
                                 "Warehouse": String(row['Warehouse'] || "N/A"), "Park": String(row['Park'] || "N/A"), "Sub-warehouses": String(row['Sub-warehouses'] || "N/A"),
-                                "Task No.": String(row['Task No.'] || "N/A"), "Wave ID": String(row['Wave ID'] || "N/A"), "Picking tote": String(row['Picking tote'] || "N/A").trim(),
+                                "Task No.": String(row['Task No.'] || "N/A"), "Wave ID": String(row['Wave ID'] || "N/A"),
+                                // 【④ 修改】箱号列名更新（数据库字段名仍为 "Picking tote"，保持不变）
+                                "Picking tote": String(row['Picking Tote/Operation Batch Conversion'] || "N/A").trim(),
                                 "SKC": String(row['SKC'] || "N/A"), "size": String(row['size'] || "N/A"), "Picking quantity": Number(row['Picking quantity']) || 0,
-                                "1st sorting quantity": Number(row['1st sorting quantity']) || 0, "2nd sorting quantity": Number(row['2nd sorting quantity']) || 0,
+                                // 【④ 修改】排序数量列名更新
+                                "1st sorting quantity": Number(row['First sorting quantity']) || 0, "2nd sorting quantity": Number(row['Second sorting count']) || 0,
                                 "Picker": String(row['Picker'] || "N/A"), "Picking Time": pickTimeClean, "Storage attribute name": String(row['Storage attribute name'] || "N/A"), "SKU": String(row['SKU'] || "N/A")
                             };
                         });
